@@ -67,6 +67,7 @@ var clientConfigWithOptions = constant.NewClientConfig(
 
 var (
 	dataIdKey                         = goVersion + "dataId"
+	groupKey                          = goVersion + "group:env"
 	configNoChangeKey                 = goVersion + "ConfigNoChange"
 	multipleClientsKey                = goVersion + "MultipleClients"
 	multipleClientsMultipleConfigsKey = goVersion + "MultipleClientsMultipleConfig"
@@ -78,23 +79,23 @@ var (
 
 var configParamMapTest = map[string]string{
 	"dataId": dataIdKey,
-	"group":  "group",
+	"group":  groupKey,
 }
 
 var configParamTest = vo.ConfigParam{
 	DataId: dataIdKey,
-	Group:  "group",
+	Group:  groupKey,
 }
 
 var localConfigTest = vo.ConfigParam{
 	DataId:  dataIdKey,
-	Group:   "group",
+	Group:   groupKey,
 	Content: "content",
 }
 
 var localConfigMapTest = map[string]string{
 	"dataId":  dataIdKey,
-	"group":   "group",
+	"group":   groupKey,
 	"content": "content",
 }
 
@@ -110,7 +111,7 @@ var serverConfigsTest = []constant.ServerConfig{serverConfigTest}
 
 var httpAgentTest = mock.MockIHttpAgent{}
 
-func createConfigClientTest() ConfigClient {
+func createConfigClientTest() *ConfigClient {
 	nc := nacos_client.NacosClient{}
 	nc.SetServerConfig([]constant.ServerConfig{*serverConfigWithOptions})
 	nc.SetClientConfig(*clientConfigWithOptions)
@@ -119,16 +120,7 @@ func createConfigClientTest() ConfigClient {
 	return client
 }
 
-func createConfigClientTestWithTenant() ConfigClient {
-	nc := nacos_client.NacosClient{}
-	nc.SetServerConfig([]constant.ServerConfig{serverConfigTest})
-	nc.SetClientConfig(clientConfigTestWithTenant)
-	nc.SetHttpAgent(&http_agent.HttpAgent{})
-	client, _ := NewConfigClient(&nc)
-	return client
-}
-
-func createConfigClientHttpTest(mockHttpAgent http_agent.IHttpAgent) ConfigClient {
+func createConfigClientHttpTest(mockHttpAgent http_agent.IHttpAgent) *ConfigClient {
 	nc := nacos_client.NacosClient{}
 	nc.SetServerConfig([]constant.ServerConfig{serverConfigTest})
 	nc.SetClientConfig(clientConfigTest)
@@ -137,7 +129,7 @@ func createConfigClientHttpTest(mockHttpAgent http_agent.IHttpAgent) ConfigClien
 	return client
 }
 
-func createConfigClientHttpTestWithTenant(mockHttpAgent http_agent.IHttpAgent) ConfigClient {
+func createConfigClientHttpTestWithTenant(mockHttpAgent http_agent.IHttpAgent) *ConfigClient {
 	nc := nacos_client.NacosClient{}
 	nc.SetServerConfig([]constant.ServerConfig{serverConfigTest})
 	nc.SetClientConfig(clientConfigTestWithTenant)
@@ -194,8 +186,9 @@ func Test_GetConfigWithErrorResponse_401(t *testing.T) {
 		gomock.Eq(configParamMapTest),
 	).Times(3).Return(http_agent.FakeHttpResponse(401, "no security"), nil)
 	result, err := client.GetConfig(configParamTest)
-	assert.Nil(t, err)
-	fmt.Printf("result:%s \n", result)
+	assert.NotNil(t, err)
+	assert.Equal(t, "", result)
+	fmt.Println(err.Error())
 }
 
 func Test_GetConfigWithErrorResponse_404(t *testing.T) {
@@ -209,9 +202,9 @@ func Test_GetConfigWithErrorResponse_404(t *testing.T) {
 		gomock.Eq(clientConfigTest.TimeoutMs),
 		gomock.Eq(configParamMapTest),
 	).Times(3).Return(http_agent.FakeHttpResponse(404, ""), nil)
-	reslut, err := client.GetConfig(configParamTest)
+	result, err := client.GetConfig(configParamTest)
 	assert.Nil(t, err)
-	assert.Equal(t, "", reslut)
+	assert.Equal(t, "", result)
 }
 
 func Test_GetConfigWithErrorResponse_403(t *testing.T) {
@@ -225,9 +218,9 @@ func Test_GetConfigWithErrorResponse_403(t *testing.T) {
 		gomock.Eq(clientConfigTest.TimeoutMs),
 		gomock.Eq(configParamMapTest),
 	).Times(3).Return(http_agent.FakeHttpResponse(403, ""), nil)
-	reslut, err := client.GetConfig(configParamTest)
+	result, err := client.GetConfig(configParamTest)
 	assert.NotNil(t, err)
-	assert.Equal(t, "", reslut)
+	assert.Equal(t, "", result)
 	fmt.Println(err.Error())
 }
 
