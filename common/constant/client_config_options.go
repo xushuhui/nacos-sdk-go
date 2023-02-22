@@ -18,8 +18,9 @@ package constant
 
 import (
 	"os"
+	"time"
 
-	"github.com/nacos-group/nacos-sdk-go/common/file"
+	"github.com/nacos-group/nacos-sdk-go/v2/common/file"
 )
 
 func NewClientConfig(opts ...ClientOption) *ClientConfig {
@@ -32,8 +33,6 @@ func NewClientConfig(opts ...ClientOption) *ClientConfig {
 		NotLoadCacheAtStart:  false,
 		UpdateCacheWhenEmpty: false,
 		LogDir:               file.GetCurrentPath() + string(os.PathSeparator) + "log",
-		RotateTime:           "24h",
-		MaxAge:               3,
 		LogLevel:             "info",
 	}
 
@@ -51,6 +50,13 @@ type ClientOption func(*ClientConfig)
 func WithTimeoutMs(timeoutMs uint64) ClientOption {
 	return func(config *ClientConfig) {
 		config.TimeoutMs = timeoutMs
+	}
+}
+
+// WithAppName ...
+func WithAppName(appName string) ClientOption {
+	return func(config *ClientConfig) {
+		config.AppName = appName
 	}
 }
 
@@ -110,6 +116,13 @@ func WithCacheDir(cacheDir string) ClientOption {
 	}
 }
 
+// WithDisableUseSnapShot ...
+func WithDisableUseSnapShot(disableUseSnapShot bool) ClientOption {
+	return func(config *ClientConfig) {
+		config.DisableUseSnapShot = disableUseSnapShot
+	}
+}
+
 // WithUpdateThreadNum ...
 func WithUpdateThreadNum(updateThreadNum int) ClientOption {
 	return func(config *ClientConfig) {
@@ -152,23 +165,29 @@ func WithLogDir(logDir string) ClientOption {
 	}
 }
 
-// WithRotateTime ...
-func WithRotateTime(rotateTime string) ClientOption {
-	return func(config *ClientConfig) {
-		config.RotateTime = rotateTime
-	}
-}
-
-// WithMaxAge ...
-func WithMaxAge(maxAge int64) ClientOption {
-	return func(config *ClientConfig) {
-		config.MaxAge = maxAge
-	}
-}
-
 // WithLogLevel ...
 func WithLogLevel(logLevel string) ClientOption {
 	return func(config *ClientConfig) {
 		config.LogLevel = logLevel
+	}
+}
+
+// WithLogSampling ...
+func WithLogSampling(tick time.Duration, initial int, thereafter int) ClientOption {
+	return func(config *ClientConfig) {
+		config.LogSampling = &ClientLogSamplingConfig{initial, thereafter, tick}
+	}
+}
+
+// WithLogRollingConfig ...
+func WithLogRollingConfig(rollingConfig *ClientLogRollingConfig) ClientOption {
+	return func(config *ClientConfig) {
+		config.LogRollingConfig = rollingConfig
+	}
+}
+
+func WithTLS(tlsCfg TLSConfig) ClientOption {
+	return func(config *ClientConfig) {
+		config.TLSCfg = tlsCfg
 	}
 }

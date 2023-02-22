@@ -14,23 +14,24 @@
  * limitations under the License.
  */
 
-package naming_client
+package naming_http
 
 import (
+	"context"
 	"testing"
 
-	"github.com/nacos-group/nacos-sdk-go/common/nacos_server"
-
-	"github.com/nacos-group/nacos-sdk-go/model"
-	"github.com/nacos-group/nacos-sdk-go/util"
+	"github.com/nacos-group/nacos-sdk-go/v2/common/constant"
+	"github.com/nacos-group/nacos-sdk-go/v2/common/nacos_server"
+	"github.com/nacos-group/nacos-sdk-go/v2/model"
+	"github.com/nacos-group/nacos-sdk-go/v2/util"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestBeatReactor_AddBeatInfo(t *testing.T) {
-	br := NewBeatReactor(NamingProxy{nacosServer: &nacos_server.NacosServer{}}, 5000)
+	br := NewBeatReactor(context.Background(), constant.ClientConfig{}, &nacos_server.NacosServer{})
 	serviceName := "Test"
 	groupName := "public"
-	beatInfo := model.BeatInfo{
+	beatInfo := &model.BeatInfo{
 		Ip:          "127.0.0.1",
 		Port:        8080,
 		Metadata:    map[string]string{},
@@ -46,10 +47,10 @@ func TestBeatReactor_AddBeatInfo(t *testing.T) {
 }
 
 func TestBeatReactor_RemoveBeatInfo(t *testing.T) {
-	br := NewBeatReactor(NamingProxy{nacosServer: &nacos_server.NacosServer{}}, 5000)
+	br := NewBeatReactor(context.Background(), constant.ClientConfig{}, &nacos_server.NacosServer{})
 	serviceName := "Test"
 	groupName := "public"
-	beatInfo1 := model.BeatInfo{
+	beatInfo1 := &model.BeatInfo{
 		Ip:          "127.0.0.1",
 		Port:        8080,
 		Metadata:    map[string]string{},
@@ -58,7 +59,7 @@ func TestBeatReactor_RemoveBeatInfo(t *testing.T) {
 		Weight:      1,
 	}
 	br.AddBeatInfo(util.GetGroupName(serviceName, groupName), beatInfo1)
-	beatInfo2 := model.BeatInfo{
+	beatInfo2 := &model.BeatInfo{
 		Ip:          "127.0.0.2",
 		Port:        8080,
 		Metadata:    map[string]string{},

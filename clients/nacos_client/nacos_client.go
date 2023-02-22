@@ -17,14 +17,15 @@
 package nacos_client
 
 import (
-	"errors"
+	"log"
 	"os"
 	"strconv"
 
-	"github.com/nacos-group/nacos-sdk-go/common/constant"
-	"github.com/nacos-group/nacos-sdk-go/common/file"
-	"github.com/nacos-group/nacos-sdk-go/common/http_agent"
-	"github.com/nacos-group/nacos-sdk-go/common/logger"
+	"github.com/pkg/errors"
+
+	"github.com/nacos-group/nacos-sdk-go/v2/common/constant"
+	"github.com/nacos-group/nacos-sdk-go/v2/common/file"
+	"github.com/nacos-group/nacos-sdk-go/v2/common/http_agent"
 )
 
 type NacosClient struct {
@@ -49,16 +50,8 @@ func (client *NacosClient) SetClientConfig(config constant.ClientConfig) (err er
 		config.UpdateThreadNum = 20
 	}
 
-	if len(config.RotateTime) == 0 {
-		config.RotateTime = "24h"
-	}
-
 	if len(config.LogLevel) == 0 {
 		config.LogLevel = "info"
-	}
-
-	if config.MaxAge <= 0 {
-		config.MaxAge = 3
 	}
 
 	if config.CacheDir == "" {
@@ -68,8 +61,7 @@ func (client *NacosClient) SetClientConfig(config constant.ClientConfig) (err er
 	if config.LogDir == "" {
 		config.LogDir = file.GetCurrentPath() + string(os.PathSeparator) + "log"
 	}
-
-	logger.Infof("logDir:<%s>   cacheDir:<%s>", config.LogDir, config.CacheDir)
+	log.Printf("[INFO] logDir:<%s>   cacheDir:<%s>", config.LogDir, config.CacheDir)
 	client.clientConfig = config
 	client.clientConfigValid = true
 

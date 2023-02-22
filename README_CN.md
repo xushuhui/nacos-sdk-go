@@ -9,14 +9,14 @@
 Nacos-sdk-go是Nacos的Go语言客户端，它实现了服务发现和动态配置的功能
 
 ## 使用限制
-支持Go>v1.12版本
+支持Go>=v1.15版本
 
-支持Nacos>1.x版本
+支持Nacos>2.x版本
 
 ## 安装
 使用`go get`安装SDK：
 ```sh
-$ go get -u github.com/nacos-group/nacos-sdk-go
+$ go get -u github.com/nacos-group/nacos-sdk-go/v2
 ```
 ## 快速使用
 * ClientConfig
@@ -48,10 +48,11 @@ constant.ClientConfig{
 
 ```go
 constant.ServerConfig{
-	ContextPath string // Nacos的ContextPath
+	ContextPath string // Nacos的ContextPath，默认/nacos，在2.0中不需要设置
 	IpAddr      string // Nacos的服务地址
 	Port        uint64 // Nacos的服务端口
-	Scheme      string // Nacos的服务地址前缀
+	Scheme      string // Nacos的服务地址前缀，默认http，在2.0中不需要设置
+	GrpcPort    uint64 // Nacos的 grpc 服务端口, 默认为 服务端口+1000, 不是必填
 }
 ```
 
@@ -62,13 +63,11 @@ constant.ServerConfig{
 ```go
 // 创建clientConfig
 clientConfig := constant.ClientConfig{
-	NamespaceId:         "e525eafa-f7d7-4029-83d9-008937f9d468", // 如果需要支持多namespace，我们可以场景多个client,它们有不同的NamespaceId。当namespace是public时，此处填空字符串。
+	NamespaceId:         "e525eafa-f7d7-4029-83d9-008937f9d468", // 如果需要支持多namespace，我们可以创建多个client,它们有不同的NamespaceId。当namespace是public时，此处填空字符串。
 	TimeoutMs:           5000,
 	NotLoadCacheAtStart: true,
 	LogDir:              "/tmp/nacos/log",
 	CacheDir:            "/tmp/nacos/cache",
-	RotateTime:          "1h",
-	MaxAge:              3,
 	LogLevel:            "debug",
 }
 
@@ -79,8 +78,6 @@ clientConfig := *constant.NewClientConfig(
     constant.WithNotLoadCacheAtStart(true),
     constant.WithLogDir("/tmp/nacos/log"),
     constant.WithCacheDir("/tmp/nacos/cache"),
-    constant.WithRotateTime("1h"),
-    constant.WithMaxAge(3),
     constant.WithLogLevel("debug"),
 )
 
@@ -106,13 +103,13 @@ serverConfigs := []constant.ServerConfig{
         "console1.nacos.io",
         80,
         constant.WithScheme("http"),
-        constant.WithContextPath("/nacos")
+        constant.WithContextPath("/nacos"),
     ),
     *constant.NewServerConfig(
         "console2.nacos.io",
         80,
         constant.WithScheme("http"),
-        constant.WithContextPath("/nacos")
+        constant.WithContextPath("/nacos"),
     ),
 }
 
@@ -265,7 +262,7 @@ err := namingClient.Subscribe(vo.SubscribeParam{
     ServiceName: "demo.go",
     GroupName:   "group-a",             // 默认值DEFAULT_GROUP
     Clusters:    []string{"cluster-a"}, // 默认值DEFAULT
-    SubscribeCallback: func(services []model.SubscribeService, err error) {
+    SubscribeCallback: func(services []model.Instance, err error) {
         log.Printf("\n\n callback return services:%s \n\n", utils.ToJsonString(services))
     },
 })
@@ -280,7 +277,7 @@ err := namingClient.Unsubscribe(vo.SubscribeParam{
     ServiceName: "demo.go",
     GroupName:   "group-a",             // 默认值DEFAULT_GROUP
     Clusters:    []string{"cluster-a"}, // 默认值DEFAULT
-    SubscribeCallback: func(services []model.SubscribeService, err error) {
+    SubscribeCallback: func(services []model.Instance, err error) {
         log.Printf("\n\n callback return services:%s \n\n", utils.ToJsonString(services))
     },
 })
@@ -290,7 +287,7 @@ err := namingClient.Unsubscribe(vo.SubscribeParam{
 * 获取服务名列表:GetAllServicesInfo
 ```go
 
-serviceInfos, err := client.GetAllServicesInfo(vo.GetAllServiceInfoParam{
+serviceInfos, err := namingClient.GetAllServicesInfo(vo.GetAllServiceInfoParam{
     NameSpace: "0e83cc81-9d8c-4bb8-a28a-ff703187543f",
     PageNo:   1,
     PageSize: 10,
